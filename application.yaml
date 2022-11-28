@@ -13,6 +13,7 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
+
 indexing-settings:
   sites:
     - url: https://www.lenta.ru
