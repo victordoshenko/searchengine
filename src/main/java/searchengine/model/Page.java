@@ -29,6 +29,16 @@ public class Page implements Serializable {
 
     @Transient
     private String title;
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public void setSiteId(int siteId) { this.site.setId(siteId); }
+    public int getSiteId() { return this.site.getId(); }
 
     @Override
     public int hashCode() {

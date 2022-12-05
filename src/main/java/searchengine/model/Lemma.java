@@ -18,7 +18,7 @@ public class Lemma {
     @Column(columnDefinition = "varchar(255)", nullable = false)
     private String lemma;
     @Column(nullable = false)
-    private float frequency;
+    private int frequency;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "site_id", nullable = false,
             foreignKey = @ForeignKey(name = "FK_lemma_site"))
@@ -27,12 +27,32 @@ public class Lemma {
 
     @Transient
     private float weight;
+    public Lemma() {
+    }
+
+    public Lemma(String lemma, int frequency, int siteId) {
+        this.lemma = lemma;
+        this.frequency = frequency;
+        this.site.setId(siteId);
+    }
+    public int getFrequency() {
+        return frequency;
+    }
+
+    public void setFrequency(int frequency) {
+        this.frequency = frequency;
+    }
 
     @Override
     public boolean equals(Object obj) {
         Lemma l = (Lemma) obj;
         return lemma.equals(l.lemma) && site == l.site;
     }
+    public int getSiteId() {
+        return this.site.getId();
+    }
+
+    public void setSiteId(int siteId) { this.site.setId(siteId); }
 
     @Override
     public int hashCode() {

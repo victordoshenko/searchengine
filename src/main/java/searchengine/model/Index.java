@@ -26,10 +26,13 @@ public class Index {
     @Column(name = "`rank`", nullable = false)
     private float rank;
 
-    public Index(Page page, Lemma lemma, float rank) {
-        this.page = page;
-        this.lemma = lemma;
+    public Index(int pageId, int lemmaId, float rank) {
+        this.page.setId(pageId);
+        this.lemma.setId(lemmaId);
         this.rank = rank;
+    }
+    public int getLemmaId() {
+        return this.lemma.getId();
     }
 
     @Override
