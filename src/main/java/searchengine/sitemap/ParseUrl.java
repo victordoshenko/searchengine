@@ -1,7 +1,7 @@
 package searchengine.sitemap;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
@@ -15,7 +15,7 @@ import java.util.concurrent.RecursiveTask;
 public class ParseUrl extends RecursiveTask<String> {
     public final static List<String> urlList = new Vector<>();
 
-    private final static Log log = LogFactory.getLog(ParseUrl.class);
+    private static final Logger log = LogManager.getLogger(); //(IndexingServiceImpl.class);
     private final String url;
     private final boolean isInterrupted;
 
@@ -26,7 +26,7 @@ public class ParseUrl extends RecursiveTask<String> {
 
     @Override
     protected String compute() {
-        if(isInterrupted){
+        if (isInterrupted) {
             return "";
         }
         StringBuilder result = new StringBuilder();
@@ -65,7 +65,7 @@ public class ParseUrl extends RecursiveTask<String> {
         return result.toString();
     }
 
-    protected Document getDocumentByUrl (String url) throws InterruptedException, IOException {
+    protected Document getDocumentByUrl(String url) throws InterruptedException, IOException {
         Thread.sleep(200);
         return Jsoup.connect(url)
                 .maxBodySize(0)

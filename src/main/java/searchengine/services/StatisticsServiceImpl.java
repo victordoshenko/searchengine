@@ -1,64 +1,66 @@
 package searchengine.services;
 
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.stereotype.Service;
-import searchengine.config.Site;
-import searchengine.config.SitesList;
-import searchengine.dto.statistics.DetailedStatisticsItem;
-import searchengine.dto.statistics.StatisticsData;
-import searchengine.dto.statistics.StatisticsResponse;
-import searchengine.dto.statistics.TotalStatistics;
+import searchengine.model.Site;
+import searchengine.model.Status;
+import searchengine.services.indexResponseEntity.Detailed;
+import searchengine.services.indexResponseEntity.Statistics;
+import searchengine.services.indexResponseEntity.Total;
+import searchengine.services.responses.StatisticResponseService;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 @Service
 @RequiredArgsConstructor
 public class StatisticsServiceImpl implements StatisticsService {
+    private static final Log log = LogFactory.getLog(StatisticsServiceImpl.class);
 
-    private final Random random = new Random();
-    private final SitesList sites;
+    private final SiteRepositoryService siteRepositoryService;
+    private final LemmaRepositoryService lemmaRepositoryService;
+    private final PageRepositoryService pageRepositoryService;
 
-    @Override
-    public StatisticsResponse getStatistics() {
-        String[] statuses = { "INDEXED", "FAILED", "INDEXING" };
-        String[] errors = {
-                "Ошибка индексации: главная страница сайта не доступна",
-                "Ошибка индексации: сайт не доступен",
-                ""
-        };
-
-        TotalStatistics total = new TotalStatistics();
-        total.setSites(sites.getSites().size());
-        total.setIndexing(true);
-
-        List<DetailedStatisticsItem> detailed = new ArrayList<>();
-        List<Site> sitesList = sites.getSites();
-        for(int i = 0; i < sitesList.size(); i++) {
-            Site site = sitesList.get(i);
-            DetailedStatisticsItem item = new DetailedStatisticsItem();
-            item.setName(site.getName());
-            item.setUrl(site.getUrl());
-            int pages = random.nextInt(1_000);
-            int lemmas = pages * random.nextInt(1_000);
-            item.setPages(pages);
-            item.setLemmas(lemmas);
-            item.setStatus(statuses[i % 3]);
-            item.setError(errors[i % 3]);
-            item.setStatusTime(System.currentTimeMillis() -
-                    (random.nextInt(10_000)));
-            total.setPages(total.getPages() + pages);
-            total.setLemmas(total.getLemmas() + lemmas);
-            detailed.add(item);
+    public StatisticResponseService getStatistics() {
+        Total total = getTotal();
+        List<Site> siteList = siteRepositoryService.getAllSites();
+        Detailed[] detaileds = new Detailed[siteList.size()];
+        for (int i = 0; i < siteList.size(); i++) {
+            detaileds[i] = getDetailed(siteList.get(i));
         }
+        log.info("Получение статистики.");
+        return new StatisticResponseService(true, new Statistics(total, detaileds));
+    }
 
-        StatisticsResponse response = new StatisticsResponse();
-        StatisticsData data = new StatisticsData();
-        data.setTotal(total);
-        data.setDetailed(detailed);
-        response.setStatistics(data);
-        response.setResult(true);
-        return response;
+    private Total getTotal() {
+        long sites = siteRepositoryService.siteCount();
+        long lemmas = lemmaRepositoryService.lemmaCount();
+        long pages = pageRepositoryService.pageCount();
+        boolean isIndexing = isSitesIndexing();
+        return new Total(sites, pages, lemmas, isIndexing);
+
+    }
+
+    private Detailed getDetailed(Site site) {
+        String url = site.getUrl();
+        String name = site.getName();
+        Status status = site.getStatus();
+        long statusTime = site.getStatusTime().getTime();
+        String error = site.getLastError();
+        long pages = pageRepositoryService.pageCount(site.getId());
+        long lemmas = lemmaRepositoryService.lemmaCount(site.getId());
+        return new Detailed(url, name, status, statusTime, error, pages, lemmas);
+    }
+
+    private boolean isSitesIndexing() {
+        boolean is = true;
+        for (Site s : siteRepositoryService.getAllSites()) {
+            if (!s.getStatus().equals(Status.INDEXED)) {
+                is = false;
+                break;
+            }
+        }
+        return is;
     }
 }

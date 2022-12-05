@@ -17,13 +17,13 @@ public class Site implements Serializable {
     private int id;
     @Enumerated(EnumType.STRING)
     private Status status;
-    @Column(name = "status_time", columnDefinition = "DATETIME", nullable = false)
+    @Column(name = "status_time") //, columnDefinition = "DATETIME", nullable = false)
     private Date statusTime;
     @Column(name = "last_error", columnDefinition = "text")
     private String lastError;
-    @Column(nullable = false)
+    //@Column(nullable = false)
     private String url;
-    @Column(nullable = false)
+    //@Column(nullable = false)
     private String name;
     @OneToMany(mappedBy = "site",
             fetch = FetchType.LAZY

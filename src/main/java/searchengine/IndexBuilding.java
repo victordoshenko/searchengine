@@ -1,11 +1,14 @@
 package searchengine;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.stereotype.Component;
 import searchengine.model.Site;
 import searchengine.model.Status;
-import searchengine.services.*;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.springframework.stereotype.Component;
+import searchengine.services.IndexRepositoryService;
+import searchengine.services.LemmaRepositoryService;
+import searchengine.services.PageRepositoryService;
+import searchengine.services.SiteRepositoryService;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -18,7 +21,8 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class IndexBuilding {
 
-    private final static Log log = LogFactory.getLog(IndexBuilding.class);
+    //private final static Log log = LogFactory.getLog(IndexBuilding.class);
+    private static final Logger log = LogManager.getLogger(); //(IndexingServiceImpl.class);
     private final SearchSettings searchSettings;
     private final SiteRepositoryService siteRepositoryService;
     private final IndexRepositoryService indexRepositoryService;
@@ -44,7 +48,7 @@ public class IndexBuilding {
         List<Site> siteList = getSiteListFromConfig();
         for (Site site : siteList) {
             isIndexing = startSiteIndexing(site);
-            if (!isIndexing){
+            if (!isIndexing) {
                 stopSiteIndexing();
                 return false;
             }
@@ -55,15 +59,15 @@ public class IndexBuilding {
     public String checkedSiteIndexing(String url) throws InterruptedException {
         List<Site> siteList = siteRepositoryService.getAllSites();
         String baseUrl = "";
-        for(Site site : siteList) {
-            if(site.getStatus() != Status.INDEXED) {
+        for (Site site : siteList) {
+            if (site.getStatus() != Status.INDEXED) {
                 return "false";
             }
-            if(url.contains(site.getUrl())){
+            if (url.contains(site.getUrl())) {
                 baseUrl = site.getUrl();
             }
         }
-        if(baseUrl.isEmpty()){
+        if (baseUrl.isEmpty()) {
             return "not found";
         } else {
             Site site = siteRepositoryService.getSite(baseUrl);
@@ -98,7 +102,7 @@ public class IndexBuilding {
             executor.execute(indexing);
             return true;
         } else {
-            if (!site1.getStatus().equals(Status.INDEXING)){
+            if (!site1.getStatus().equals(Status.INDEXING)) {
                 SiteIndexing indexing = new SiteIndexing(
                         siteRepositoryService.getSite(site.getUrl()),
                         searchSettings,
@@ -115,21 +119,21 @@ public class IndexBuilding {
         }
     }
 
-    public boolean stopSiteIndexing(){
+    public boolean stopSiteIndexing() {
         boolean isThreadAlive = false;
-        if(executor.getActiveCount() == 0){
+        if (executor.getActiveCount() == 0) {
             return false;
         }
 
         executor.shutdownNow();
         try {
-            isThreadAlive = executor.awaitTermination(5,TimeUnit.MINUTES);
+            isThreadAlive = executor.awaitTermination(5, TimeUnit.MINUTES);
         } catch (InterruptedException e) {
             log.error("Ошибка закрытия потоков: " + e);
         }
-        if (isThreadAlive){
+        if (isThreadAlive) {
             List<Site> siteList = siteRepositoryService.getAllSites();
-            for(Site site : siteList) {
+            for (Site site : siteList) {
                 site.setStatus(Status.FAILED);
                 siteRepositoryService.save(site);
             }

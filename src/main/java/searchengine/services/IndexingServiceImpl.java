@@ -1,17 +1,20 @@
 package searchengine.services;
 
-import searchengine.IndexBuilding;
-import searchengine.services.responses.*;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
+import searchengine.IndexBuilding;
+import searchengine.services.responses.FalseResponseService;
+import searchengine.services.responses.ResponseService;
+import searchengine.services.responses.TrueResponseService;
 
 @Service
 public class IndexingServiceImpl implements IndexingService {
 
     private final IndexBuilding indexBuilding;
 
-    private static final Log log = LogFactory.getLog(IndexingServiceImpl.class);
+    //private static final Log log = LogFactory.getLog(IndexingServiceImpl.class);
+    private static final Logger log = LogManager.getLogger(); //(IndexingServiceImpl.class);
 
     public IndexingServiceImpl(IndexBuilding indexBuilding) {
         this.indexBuilding = indexBuilding;
@@ -68,11 +71,9 @@ public class IndexingServiceImpl implements IndexingService {
         if (response.equals("not found")) {
             resp = new FalseResponseService("Страница находится за пределами сайтов," +
                     " указанных в конфигурационном файле");
-        }
-        else if (response.equals("false")) {
+        } else if (response.equals("false")) {
             resp = new FalseResponseService("Индексация страницы уже запущена");
-        }
-        else {
+        } else {
             resp = new TrueResponseService();
         }
         return resp;
