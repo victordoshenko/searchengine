@@ -19,7 +19,7 @@ public class Page implements Serializable {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "site_id", nullable = false, foreignKey = @ForeignKey(name = "FK_page_site"))
     @OnDelete(action = OnDeleteAction.CASCADE)
-    private Site site;
+    private final Site site = new Site();
     @Column(columnDefinition = "varchar(512)", nullable = false)
     private String path;
     @Column(nullable = false)
@@ -42,13 +42,13 @@ public class Page implements Serializable {
 
     @Override
     public int hashCode() {
-        return path != null && site != null ? path.hashCode() + site.hashCode() : 0;
+        return path != null && site.getId() != 0 ? path.hashCode() + site.hashCode() : 0;
     }
 
     @Override
     public boolean equals(Object obj) {
         Page p = (Page) obj;
-        return site == null ||
+        return site.getId() == 0 ||
                 getClass() == obj.getClass() && path.equals(p.path) && site == p.site;
     }
 
