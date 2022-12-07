@@ -2,6 +2,7 @@ package searchengine.services;
 
 import searchengine.model.Index;
 import searchengine.model.Lemma;
+import searchengine.model.Page;
 import searchengine.repo.IndexRepository;
 import org.springframework.stereotype.Service;
 
@@ -22,8 +23,8 @@ public class IndexRepoServiceImpl implements IndexRepositoryService {
     }
 
     @Override
-    public List<Index> getAllIndexingByPageId(int pageId) {
-        return indexRepository.findByPageId(pageId);
+    public List<Index> getAllIndexingByPage(Page page) {
+        return indexRepository.findByPage(page);
     }
 
     @Override
@@ -32,12 +33,12 @@ public class IndexRepoServiceImpl implements IndexRepositoryService {
     }
 
     @Override
-    public Index getIndexing(Lemma lemma, int pageId) {
+    public Index getIndexing(Lemma lemma, Page page) {
         Index indexing = null;
         try{
-            indexing = indexRepository.findByLemmaAndPageId(lemma, pageId);
+            indexing = indexRepository.findByLemmaAndPage(lemma, page);
         } catch (Exception e) {
-            System.out.println("lemmaId: " + lemma.getId() + " + pageId: " + pageId + " not unique");
+            System.out.println("lemmaId: " + lemma.getId() + " + pageId: " + page.getId() + " not unique");
             e.printStackTrace();
         }
         return indexing;

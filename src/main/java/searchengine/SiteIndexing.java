@@ -1,7 +1,7 @@
 package searchengine;
 
 import searchengine.model.*;
-//import searchengine.morphology.MorphologyAnalyzer;
+import searchengine.morphology.MorphologyAnalyzer;
 import searchengine.services.*;
 import searchengine.sitemap.SiteMapBuilder;
 import org.jsoup.Connection;
@@ -71,19 +71,18 @@ public class SiteIndexing extends Thread{
         site.setStatusTime(new Date());
         siteRepositoryService.save(site);
 
-        //List<String> fieldList = getFieldList();
+        List<String> fieldList = getFieldList();
         try {
             Page page = getSearchPage(searchUrl, site.getUrl(), site.getId());
             Page checkPage = pageRepositoryService.getPage(searchUrl.replaceAll(site.getUrl(), ""));
-            /*
+
             if (checkPage != null){
                 prepareDbToIndexing(checkPage);
             }
             TreeMap<String, Integer> map = new TreeMap<>();
             TreeMap<String, Float> indexing = new TreeMap<>();
-            for (Field field : fieldList){
-                String name = field.getName();
-                float weight = field.getWeight();
+            for (String name : fieldList){
+                float weight = 1.0f;
                 String stringByTeg = getStringByTeg(name, page.getContent());
                 MorphologyAnalyzer analyzer = new MorphologyAnalyzer();
                 TreeMap<String, Integer> tempMap = analyzer.textAnalyzer(stringByTeg);
@@ -93,12 +92,12 @@ public class SiteIndexing extends Thread{
 
             lemmaToDB(map, site.getId());
             map.clear();
-            */
+
             pageToDb(page);
-            /*
+
             indexingToDb(indexing, page.getPath());
             indexing.clear();
-            */
+
         }
         catch (UnsupportedMimeTypeException e) {
             site.setLastError("Формат страницы не поддерживается: " + searchUrl);
@@ -206,7 +205,7 @@ public class SiteIndexing extends Thread{
     }
 
     private void prepareDbToIndexing(Page page) {
-        List<Index> indexingList = indexRepositoryService.getAllIndexingByPageId(page.getId());
+        List<Index> indexingList = indexRepositoryService.getAllIndexingByPage(page);
         List<Lemma> allLemmasIdByPage = lemmaRepositoryService.findLemmasByIndexing(indexingList);
         lemmaRepositoryService.deleteAllLemmas(allLemmasIdByPage);
         indexRepositoryService.deleteAllIndexing(indexingList);

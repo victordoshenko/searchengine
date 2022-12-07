@@ -9,7 +9,7 @@ public interface PageRepositoryService {
     Page getPage (String pagePath);
     void save(Page page);
     Optional<Page> findPageById(int id);
-    Optional<Page> findPageByPageIdAndSiteId(int pageId, Site site);
+    Optional<Page> findPageByPageIdAndSite(int pageId, Site site);
     long pageCount();
     long pageCount(long siteId);
     void deletePage(Page page);

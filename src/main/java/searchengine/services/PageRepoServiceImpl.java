@@ -32,7 +32,7 @@ public class PageRepoServiceImpl implements PageRepositoryService {
     }
 
     @Override
-    public Optional<Page> findPageByPageIdAndSiteId(int pageId, Site site) {
+    public Optional<Page> findPageByPageIdAndSite(int pageId, Site site) {
         return pageRepository.findByIdAndSite(pageId, site);
     }
 

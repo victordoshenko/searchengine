@@ -23,7 +23,7 @@ public class Lemma {
     @JoinColumn(name = "site_id", nullable = false,
             foreignKey = @ForeignKey(name = "FK_lemma_site"))
     @OnDelete(action = OnDeleteAction.CASCADE)
-    private Site site;
+    private final Site site = new Site();
 
     @Transient
     private float weight;
