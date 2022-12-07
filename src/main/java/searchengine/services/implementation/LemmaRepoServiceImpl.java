@@ -1,9 +1,10 @@
-package searchengine.services;
+package searchengine.services.implementation;
 
+import searchengine.services.*;
+import org.springframework.stereotype.Service;
 import searchengine.model.Index;
 import searchengine.model.Lemma;
 import searchengine.repo.LemmaRepository;
-import org.springframework.stereotype.Service;
 
 import java.util.List;
 
@@ -19,7 +20,7 @@ public class LemmaRepoServiceImpl implements LemmaRepositoryService {
     @Override
     public List<Lemma> getLemma(String lemmaName) {
         List<Lemma> lemmas = null;
-        try{
+        try {
             lemmas = lemmaRepository.findByLemma(lemmaName);
         } catch (Exception e) {
             System.out.println(lemmaName);
@@ -34,22 +35,22 @@ public class LemmaRepoServiceImpl implements LemmaRepositoryService {
     }
 
     @Override
-    public long lemmaCount(){
+    public long lemmaCount() {
         return lemmaRepository.count();
     }
 
     @Override
-    public long lemmaCount(long siteId){
+    public long lemmaCount(long siteId) {
         return lemmaRepository.count(siteId);
     }
 
     @Override
-    public synchronized void deleteAllLemmas(List<Lemma> lemmaList){
+    public synchronized void deleteAllLemmas(List<Lemma> lemmaList) {
         lemmaRepository.deleteAll(lemmaList);
     }
 
     @Override
-    public List<Lemma> findLemmasByIndexing(List<Index> indexingList){
+    public List<Lemma> findLemmasByIndexing(List<Index> indexingList) {
         int[] lemmaIdList = new int[indexingList.size()];
         for (int i = 0; i < indexingList.size(); i++) {
             lemmaIdList[i] = indexingList.get(i).getLemmaId();

@@ -1,5 +1,6 @@
-package searchengine.services;
+package searchengine.services.implementation;
 
+import searchengine.services.*;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;

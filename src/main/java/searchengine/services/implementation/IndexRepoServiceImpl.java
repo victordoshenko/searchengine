@@ -1,5 +1,6 @@
-package searchengine.services;
+package searchengine.services.implementation;
 
+import searchengine.services.*;
 import searchengine.model.Index;
 import searchengine.model.Lemma;
 import searchengine.model.Page;

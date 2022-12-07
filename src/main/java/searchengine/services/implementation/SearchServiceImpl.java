@@ -1,5 +1,6 @@
-package searchengine.services;
+package searchengine.services.implementation;
 
+import searchengine.services.*;
 import searchengine.Search;
 import searchengine.model.Request;
 import searchengine.services.responses.FalseResponseService;
