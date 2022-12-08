@@ -1,11 +1,13 @@
 package searchengine.services.implementation;
 
-import searchengine.services.*;
+import org.springframework.stereotype.Service;
+import searchengine.model.Index;
 import searchengine.model.Page;
 import searchengine.model.Site;
 import searchengine.repo.PageRepository;
-import org.springframework.stereotype.Service;
+import searchengine.services.PageRepositoryService;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -38,18 +40,36 @@ public class PageRepoServiceImpl implements PageRepositoryService {
     }
 
     @Override
-    public long pageCount(){
+    public long pageCount() {
         return pageRepository.count();
     }
 
     @Override
-    public long pageCount(long siteId){
+    public long pageCount(long siteId) {
         return pageRepository.count(siteId);
     }
 
     @Override
     public void deletePage(Page page) {
         pageRepository.delete(page);
+    }
+
+    @Override
+    public List<Page> findPagesByIndexing(List<Index> indexingList) {
+        int[] pageIdList = new int[indexingList.size()];
+        for (int i = 0; i < indexingList.size(); i++) {
+            pageIdList[i] = indexingList.get(i).getPageId();
+        }
+        return pageRepository.findByIds(pageIdList);
+    }
+
+    @Override
+    public synchronized void deleteAllPages(List<Page> pageList) {
+        if (pageList.size() > 0) {
+            pageRepository.deleteAll(pageList);
+        } else {
+            pageRepository.deleteAll();
+        }
     }
 
 }

@@ -16,6 +16,9 @@ public interface LemmaRepository extends CrudRepository<Lemma, Integer> {
     @Query(value = "SELECT * from Lemma WHERE id IN(:id)", nativeQuery = true)
     List<Lemma> findById (int[] id);
 
+    @Query(value = "SELECT * from Lemma WHERE id IN :ids", nativeQuery = true)
+    List<Lemma> findByIds (@Param("ids")int[] ids);
+
     @Query(value = "SELECT count(*) from Lemma where site_id = :id")
     long count(@Param("id") long id);
 }

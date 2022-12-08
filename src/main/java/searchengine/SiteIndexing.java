@@ -206,12 +206,9 @@ public class SiteIndexing extends Thread{
 
     private void prepareDbToIndexing(Page page) {
         List<Index> indexingList = indexRepositoryService.getAllIndexingByPage(page);
-        List<Lemma> allLemmasIdByPage = lemmaRepositoryService.findLemmasByIndexing(indexingList);
-        lemmaRepositoryService.deleteAllLemmas(allLemmasIdByPage);
-        indexRepositoryService.deleteAllIndexing(indexingList);
-        for (Page p : site.getPages()) {
-            pageRepositoryService.deletePage(p);
-        }
-        //pageRepositoryService.deletePage(page);
+        List<Lemma> allLemmasIdByIndexing = lemmaRepositoryService.findLemmasByIndexing(indexingList);
+        List<Page> allPagesIdByIndexing = pageRepositoryService.findPagesByIndexing(indexingList);
+        lemmaRepositoryService.deleteAllLemmas(allLemmasIdByIndexing);
+        pageRepositoryService.deleteAllPages(allPagesIdByIndexing);
     }
 }

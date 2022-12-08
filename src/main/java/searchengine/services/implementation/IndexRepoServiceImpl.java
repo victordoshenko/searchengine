@@ -29,15 +29,6 @@ public class IndexRepoServiceImpl implements IndexRepositoryService {
     }
 
     @Override
-    public synchronized void deleteAllIndexing(List<Index> indexingList){
-        if (indexingList.size() > 0) {
-            indexRepository.deleteAll(indexingList);
-        } else {
-            indexRepository.deleteAll();
-        }
-    }
-
-    @Override
     public Index getIndexing(Lemma lemma, Page page) {
         Index indexing = null;
         try{

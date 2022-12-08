@@ -59,6 +59,6 @@ public class LemmaRepoServiceImpl implements LemmaRepositoryService {
         for (int i = 0; i < indexingList.size(); i++) {
             lemmaIdList[i] = indexingList.get(i).getLemmaId();
         }
-        return lemmaRepository.findById(lemmaIdList);
+        return lemmaRepository.findByIds(lemmaIdList);
     }
 }
