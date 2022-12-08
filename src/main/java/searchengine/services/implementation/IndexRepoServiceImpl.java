@@ -30,7 +30,11 @@ public class IndexRepoServiceImpl implements IndexRepositoryService {
 
     @Override
     public synchronized void deleteAllIndexing(List<Index> indexingList){
-        indexRepository.deleteAll(indexingList);
+        if (indexingList.size() > 0) {
+            indexRepository.deleteAll(indexingList);
+        } else {
+            indexRepository.deleteAll();
+        }
     }
 
     @Override

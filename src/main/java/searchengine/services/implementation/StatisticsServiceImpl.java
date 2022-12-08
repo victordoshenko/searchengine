@@ -55,10 +55,10 @@ public class StatisticsServiceImpl implements StatisticsService {
     }
 
     private boolean isSitesIndexing() {
-        boolean is = true;
+        boolean is = false;
         for (Site s : siteRepositoryService.getAllSites()) {
-            if (!s.getStatus().equals(Status.INDEXED)) {
-                is = false;
+            if (s.getStatus().equals(Status.INDEXING)) {
+                is = true;
                 break;
             }
         }

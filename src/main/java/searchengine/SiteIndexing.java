@@ -209,6 +209,9 @@ public class SiteIndexing extends Thread{
         List<Lemma> allLemmasIdByPage = lemmaRepositoryService.findLemmasByIndexing(indexingList);
         lemmaRepositoryService.deleteAllLemmas(allLemmasIdByPage);
         indexRepositoryService.deleteAllIndexing(indexingList);
-        pageRepositoryService.deletePage(page);
+        for (Page p : site.getPages()) {
+            pageRepositoryService.deletePage(p);
+        }
+        //pageRepositoryService.deletePage(page);
     }
 }

@@ -6,6 +6,7 @@ import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -49,6 +50,9 @@ public class Site implements Serializable {
     private Long lastPageReadingTime = 0L;
     public Date getStatusTime() {
         return statusTime;
+    }
+    public Set<Page> getPages() {
+        return pages;
     }
 
     public void setStatusTime(Date statusTime) {

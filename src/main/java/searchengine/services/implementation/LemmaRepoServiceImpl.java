@@ -46,7 +46,11 @@ public class LemmaRepoServiceImpl implements LemmaRepositoryService {
 
     @Override
     public synchronized void deleteAllLemmas(List<Lemma> lemmaList) {
-        lemmaRepository.deleteAll(lemmaList);
+        if (lemmaList.size() > 0) {
+            lemmaRepository.deleteAll(lemmaList);
+        } else {
+            lemmaRepository.deleteAll();
+        }
     }
 
     @Override
