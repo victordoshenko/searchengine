@@ -6,7 +6,6 @@ import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -18,13 +17,11 @@ public class Site implements Serializable {
     private int id;
     @Enumerated(EnumType.STRING)
     private Status status;
-    @Column(name = "status_time") //, columnDefinition = "DATETIME", nullable = false)
+    @Column(name = "status_time")
     private Date statusTime;
     @Column(name = "last_error", columnDefinition = "text")
     private String lastError;
-    //@Column(nullable = false)
     private String url;
-    //@Column(nullable = false)
     private String name;
     @OneToMany(mappedBy = "site",
             fetch = FetchType.LAZY
@@ -35,6 +32,7 @@ public class Site implements Serializable {
             fetch = FetchType.LAZY
     )
     private Set<Lemma> lemmas = new HashSet<>();
+
     public int getId() {
         return id;
     }
@@ -42,15 +40,22 @@ public class Site implements Serializable {
     public void setId(int id) {
         this.id = id;
     }
+
     public String getLastError() {
         return lastError == null ? "" : lastError;
     }
 
+    public void setLastError(String error) {
+        this.lastError = error;
+    }
+
     @Transient
     private Long lastPageReadingTime = 0L;
+
     public Date getStatusTime() {
         return statusTime;
     }
+
     public Set<Page> getPages() {
         return pages;
     }

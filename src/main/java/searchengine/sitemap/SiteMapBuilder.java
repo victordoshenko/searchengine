@@ -1,28 +1,47 @@
 package searchengine.sitemap;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 
 public class SiteMapBuilder {
+    private static final Logger log = LogManager.getLogger();
 
     private final String url;
-    private final boolean isInterrupted;
+    private final Boolean isInterrupted;
     private List<String> siteMap;
 
-    public SiteMapBuilder(String url, boolean isInterrupted){
+    public ForkJoinPool pool = new ForkJoinPool();
+
+    public SiteMapBuilder(String url, Boolean isInterrupted) {
         this.url = url;
         this.isInterrupted = isInterrupted;
     }
 
     public void builtSiteMap() {
-        String text = new ForkJoinPool().invoke(new ParseUrl(url, isInterrupted));
+        pool = new ForkJoinPool();
+        ParseUrl.clearUrlList();
+        String text = pool.invoke(new ParseUrl(url, isInterrupted));
         siteMap = stringToList(text);
     }
 
-    private List<String> stringToList (String text) {
+    public void stopBuildSiteMap() {
+        log.info("ForkJoinPool stopping initiated ...");
+        pool.shutdownNow();
+        try {
+            pool.awaitTermination(100, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            log.error("ForkJoinPool: Ошибка закрытия потоков: " + e);
+        }
+    }
+
+    private List<String> stringToList(String text) {
         return Arrays.stream(text.split("\n")).collect(Collectors.toList());
     }
 

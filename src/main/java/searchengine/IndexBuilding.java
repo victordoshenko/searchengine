@@ -10,24 +10,20 @@ import searchengine.services.LemmaRepositoryService;
 import searchengine.services.PageRepositoryService;
 import searchengine.services.SiteRepositoryService;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 @Component
 public class IndexBuilding {
 
-    //private final static Log log = LogFactory.getLog(IndexBuilding.class);
-    private static final Logger log = LogManager.getLogger(); //(IndexingServiceImpl.class);
+    private static final Logger log = LogManager.getLogger();
     private final SearchSettings searchSettings;
     private final SiteRepositoryService siteRepositoryService;
     private final IndexRepositoryService indexRepositoryService;
     private final PageRepositoryService pageRepositoryService;
     private final LemmaRepositoryService lemmaRepositoryService;
+    private final List<SiteIndexing> siteIndexingList = Collections.synchronizedList(new ArrayList<>());
 
     public IndexBuilding(SearchSettings searchSettings,
                          SiteRepositoryService siteRepositoryService,
@@ -80,6 +76,7 @@ public class IndexBuilding {
                     pageRepositoryService,
                     lemmaRepositoryService,
                     false);
+            siteIndexingList.add(indexing);
             executor.execute(indexing);
             site.setUrl(baseUrl);
             siteRepositoryService.save(site);
@@ -99,6 +96,7 @@ public class IndexBuilding {
                     pageRepositoryService,
                     lemmaRepositoryService,
                     true);
+            siteIndexingList.add(indexing);
             executor.execute(indexing);
             return true;
         } else {
@@ -111,6 +109,7 @@ public class IndexBuilding {
                         pageRepositoryService,
                         lemmaRepositoryService,
                         true);
+                siteIndexingList.add(indexing);
                 executor.execute(indexing);
                 return true;
             } else {
@@ -120,25 +119,20 @@ public class IndexBuilding {
     }
 
     public boolean stopSiteIndexing() {
-        boolean isThreadAlive = false;
         if (executor.getActiveCount() == 0) {
             return false;
         }
-
-        executor.shutdownNow();
-        try {
-            isThreadAlive = executor.awaitTermination(5, TimeUnit.MINUTES);
-        } catch (InterruptedException e) {
-            log.error("Ошибка закрытия потоков: " + e);
+        for (SiteIndexing siteIndexing : siteIndexingList) {
+            siteIndexing.stopBuildSiteMap();
         }
-        if (isThreadAlive) {
-            List<Site> siteList = siteRepositoryService.getAllSites();
-            for (Site site : siteList) {
-                site.setStatus(Status.FAILED);
-                siteRepositoryService.save(site);
-            }
+        siteIndexingList.clear();
+        List<Site> siteList = siteRepositoryService.getAllSites();
+        for (Site site : siteList) {
+            site.setStatus(Status.FAILED);
+            site.setLastError("Индексация остановлена пользователем");
+            siteRepositoryService.save(site);
         }
-        return isThreadAlive;
+        return true;
     }
 
     private List<Site> getSiteListFromConfig() {

@@ -1,5 +1,7 @@
 package searchengine;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import searchengine.model.*;
 import searchengine.morphology.MorphologyAnalyzer;
 import searchengine.services.*;
@@ -14,6 +16,7 @@ import java.io.IOException;
 import java.util.*;
 
 public class SiteIndexing extends Thread{
+    private static final Logger log = LogManager.getLogger();
     private final Site site;
     private final SearchSettings searchSettings;
     private final SiteRepositoryService siteRepositoryService;
@@ -21,6 +24,8 @@ public class SiteIndexing extends Thread{
     private final PageRepositoryService pageRepositoryService;
     private final LemmaRepositoryService lemmaRepositoryService;
     private final boolean allSite;
+    private Boolean isStoppingByHuman = false;
+    SiteMapBuilder builder;
 
     public SiteIndexing(Site site,
                         SearchSettings searchSettings,
@@ -36,9 +41,8 @@ public class SiteIndexing extends Thread{
         this.pageRepositoryService = pageRepositoryService;
         this.lemmaRepositoryService = lemmaRepositoryService;
         this.allSite = allSite;
+        this.builder = new SiteMapBuilder(site.getUrl(), this.isInterrupted());
     }
-
-
 
     @Override
     public void run() {
@@ -55,18 +59,28 @@ public class SiteIndexing extends Thread{
     }
 
     public void runAllIndexing() {
+        isStoppingByHuman = false;
         site.setStatus(Status.INDEXING);
         site.setStatusTime(new Date());
         siteRepositoryService.save(site);
-        SiteMapBuilder builder = new SiteMapBuilder(site.getUrl(), this.isInterrupted());
         builder.builtSiteMap();
         List<String> allSiteUrls = builder.getSiteMap();
         for(String url : allSiteUrls) {
             runOneSiteIndexing(url);
         }
+        log.info("Индексация завершена.");
+    }
+
+    public void stopBuildSiteMap() {
+        isStoppingByHuman = true;
+        builder.stopBuildSiteMap();
     }
 
     public void runOneSiteIndexing(String searchUrl) {
+        if (isStoppingByHuman) {
+            return;
+        }
+        log.info("runOneSiteIndexing: " + searchUrl);
         site.setStatus(Status.INDEXING);
         site.setStatusTime(new Date());
         siteRepositoryService.save(site);

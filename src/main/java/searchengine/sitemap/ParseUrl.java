@@ -8,20 +8,25 @@ import org.jsoup.select.Elements;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.RecursiveTask;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ParseUrl extends RecursiveTask<String> {
     public final static List<String> urlList = new Vector<>();
-
-    private static final Logger log = LogManager.getLogger(); //(IndexingServiceImpl.class);
+    private static final Logger log = LogManager.getLogger();
     private final String url;
-    private final boolean isInterrupted;
+    private final Boolean isInterrupted;
 
     public ParseUrl(String url, boolean isInterrupted) {
         this.url = url;
         this.isInterrupted = isInterrupted;
+    }
+
+    public static void clearUrlList() {
+        urlList.clear();
     }
 
     @Override
@@ -66,6 +71,7 @@ public class ParseUrl extends RecursiveTask<String> {
     }
 
     protected Document getDocumentByUrl(String url) throws InterruptedException, IOException {
+        log.info(" getDocumentByUrl[" + urlList.size() + "]: " + url);
         Thread.sleep(200);
         return Jsoup.connect(url)
                 .maxBodySize(0)

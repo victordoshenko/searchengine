@@ -12,13 +12,15 @@ spring:
         dialect: org.hibernate.dialect.MySQL8Dialect
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false
 
 config:
   prefix: search_
   agent: Mozilla/5.0 (Windows; U; WindowsNT 5.1; en-US; rv1.8.1.6) Gecko/20070725 Firefox/2.0.0.6
   webinterface: /admin
   site:
+#    - url: http://www.playback.ru
+#      name: playback.ru
     - url: https://nikoartgallery.com
       name: nikoartgallery
 #    - url: http://mcrain.narod.ru
