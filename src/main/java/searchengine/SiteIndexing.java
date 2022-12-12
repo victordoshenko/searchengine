@@ -26,6 +26,7 @@ public class SiteIndexing extends Thread{
     private final boolean allSite;
     private Boolean isStoppingByHuman = false;
     SiteMapBuilder builder;
+    private final String url;
 
     public SiteIndexing(Site site,
                         SearchSettings searchSettings,
@@ -33,7 +34,8 @@ public class SiteIndexing extends Thread{
                         IndexRepositoryService indexRepositoryService,
                         PageRepositoryService pageRepositoryService,
                         LemmaRepositoryService lemmaRepositoryService,
-                        boolean allSite) {
+                        boolean allSite,
+                        String url) {
         this.site = site;
         this.searchSettings = searchSettings;
         this.siteRepositoryService = siteRepositoryService;
@@ -42,6 +44,7 @@ public class SiteIndexing extends Thread{
         this.lemmaRepositoryService = lemmaRepositoryService;
         this.allSite = allSite;
         this.builder = new SiteMapBuilder(site.getUrl(), this.isInterrupted());
+        this.url = url;
     }
 
     @Override
@@ -50,7 +53,10 @@ public class SiteIndexing extends Thread{
             if (allSite) {
                 runAllIndexing();
             } else {
-                runOneSiteIndexing(site.getUrl());
+                runOneSiteIndexing(this.url.equals("") ? site.getUrl() : this.url);
+                if (!this.url.equals("")) {
+                    log.info("Индексация одной страницы завершена.");
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();

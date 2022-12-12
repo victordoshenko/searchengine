@@ -75,7 +75,8 @@ public class IndexBuilding {
                     indexRepositoryService,
                     pageRepositoryService,
                     lemmaRepositoryService,
-                    false);
+                    false,
+                    url);
             siteIndexingList.add(indexing);
             executor.execute(indexing);
             site.setUrl(baseUrl);
@@ -95,7 +96,8 @@ public class IndexBuilding {
                     indexRepositoryService,
                     pageRepositoryService,
                     lemmaRepositoryService,
-                    true);
+                    true,
+                    "");
             siteIndexingList.add(indexing);
             executor.execute(indexing);
             return true;
@@ -108,7 +110,8 @@ public class IndexBuilding {
                         indexRepositoryService,
                         pageRepositoryService,
                         lemmaRepositoryService,
-                        true);
+                        true,
+                        "");
                 siteIndexingList.add(indexing);
                 executor.execute(indexing);
                 return true;
