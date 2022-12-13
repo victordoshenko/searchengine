@@ -37,7 +37,7 @@ Spring Framework, JPA, JSOUP, SQL, Morphology Library Lucene
 выбором сайта, по которому искать, а при нажатии на кнопку
 <i>SEARCH</i> выводятся результаты поиска (по запросу /search).
 
-## Файлы настройки
+## Файл настройки
 <i>application.yaml</i>
 
 ### Раздел server
