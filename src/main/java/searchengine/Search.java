@@ -50,7 +50,7 @@ public class Search {
             listOfSearchData.addAll(getSortedSearchData(list, request));
         }
         int count;
-        listOfSearchData.sort(Comparator.comparingDouble(SearchData::getRelevance));
+        listOfSearchData.sort(Comparator.comparingDouble(SearchData::getRelevance).reversed());
         if (listOfSearchData.isEmpty()) {
             return new SearchResponseService(false);
         }
