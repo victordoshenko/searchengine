@@ -1,5 +1,7 @@
 package searchengine.services.implementation;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import searchengine.services.*;
 import org.springframework.stereotype.Service;
 import searchengine.model.Index;
@@ -10,6 +12,9 @@ import java.util.List;
 
 @Service
 public class LemmaRepoServiceImpl implements LemmaRepositoryService {
+
+    private static final Logger log = LogManager.getLogger();
+
 
     private final LemmaRepository lemmaRepository;
 
@@ -23,7 +28,7 @@ public class LemmaRepoServiceImpl implements LemmaRepositoryService {
         try {
             lemmas = lemmaRepository.findByLemma(lemmaName);
         } catch (Exception e) {
-            System.out.println(lemmaName);
+            log.info(lemmaName);
             e.printStackTrace();
         }
         return lemmas;

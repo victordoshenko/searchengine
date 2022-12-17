@@ -14,8 +14,7 @@ public class IndexingServiceImpl implements IndexingService {
 
     private final IndexBuilding indexBuilding;
 
-    //private static final Log log = LogFactory.getLog(IndexingServiceImpl.class);
-    private static final Logger log = LogManager.getLogger(); //(IndexingServiceImpl.class);
+    private static final Logger log = LogManager.getLogger();
 
     public IndexingServiceImpl(IndexBuilding indexBuilding) {
         this.indexBuilding = indexBuilding;

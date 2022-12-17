@@ -1,5 +1,7 @@
 package searchengine.services.implementation;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import searchengine.services.*;
 import searchengine.model.Index;
 import searchengine.model.Lemma;
@@ -11,6 +13,8 @@ import java.util.List;
 
 @Service
 public class IndexRepoServiceImpl implements IndexRepositoryService {
+
+    private static final Logger log = LogManager.getLogger();
 
     private final IndexRepository indexRepository;
 
@@ -34,7 +38,7 @@ public class IndexRepoServiceImpl implements IndexRepositoryService {
         try{
             indexing = indexRepository.findByLemmaAndPage(lemma, page);
         } catch (Exception e) {
-            System.out.println("lemmaId: " + lemma.getId() + " + pageId: " + page.getId() + " not unique");
+            log.info("lemmaId: " + lemma.getId() + " + pageId: " + page.getId() + " not unique");
             e.printStackTrace();
         }
         return indexing;

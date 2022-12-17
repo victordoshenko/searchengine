@@ -1,7 +1,5 @@
 package searchengine;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
 import searchengine.model.Site;
 import searchengine.model.Status;
@@ -17,7 +15,6 @@ import java.util.concurrent.ThreadPoolExecutor;
 @Component
 public class IndexBuilding {
 
-    private static final Logger log = LogManager.getLogger();
     private final SearchSettings searchSettings;
     private final SiteRepositoryService siteRepositoryService;
     private final IndexRepositoryService indexRepositoryService;
@@ -56,7 +53,7 @@ public class IndexBuilding {
         List<Site> siteList = siteRepositoryService.getAllSites();
         String baseUrl = "";
         for (Site site : siteList) {
-            if (site.getStatus() != Status.INDEXED) {
+            if (site.getStatus() != Status.INDEXED && site.getStatus() != Status.FAILED) {
                 return "false";
             }
             if (url.contains(site.getUrl())) {
@@ -85,7 +82,7 @@ public class IndexBuilding {
         }
     }
 
-    private boolean startSiteIndexing(Site site) throws InterruptedException {
+    private boolean startSiteIndexing(Site site) {
         Site site1 = siteRepositoryService.getSite(site.getUrl());
         if (site1 == null) {
             siteRepositoryService.save(site);

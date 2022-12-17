@@ -7,9 +7,9 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.stereotype.Service;
 import searchengine.model.Site;
 import searchengine.model.Status;
-import searchengine.services.indexResponseEntity.Detailed;
-import searchengine.services.indexResponseEntity.Statistics;
-import searchengine.services.indexResponseEntity.Total;
+import searchengine.services.indexresponseentity.Detailed;
+import searchengine.services.indexresponseentity.Statistics;
+import searchengine.services.indexresponseentity.Total;
 import searchengine.services.responses.StatisticResponseService;
 
 import java.util.List;

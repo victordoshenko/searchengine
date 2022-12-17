@@ -22,11 +22,10 @@ public class SearchServiceImpl implements SearchService {
         this.search = search;
     }
 
-    ResponseService response;
-
     @Override
-    public ResponseService getResponse(Request request, String url, int offset, int limit) throws IOException {
+    public ResponseService getResponse(Request request, String url, int offset, int limit) {
         log.info("Запрос на поиск строки- \"" + request.getReq() + "\"");
+        ResponseService response;
         if (request.getReq().equals("")){
             response = new FalseResponseService("Задан пустой поисковый запрос");
             log.warn("Задан пустой поисковый запрос");
