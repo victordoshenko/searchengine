@@ -1,15 +1,13 @@
 package searchengine.services.implementation;
 
-import searchengine.services.*;
-import searchengine.Search;
-import searchengine.model.Request;
-import searchengine.services.responses.FalseResponseService;
-import searchengine.services.responses.ResponseService;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.stereotype.Service;
-
-import java.io.IOException;
+import searchengine.Search;
+import searchengine.model.Request;
+import searchengine.services.SearchService;
+import searchengine.services.responses.FalseResponseService;
+import searchengine.services.responses.ResponseService;
 
 @Service
 public class SearchServiceImpl implements SearchService {
