@@ -1,11 +1,13 @@
 package searchengine.repo;
 
-import searchengine.model.Lemma;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import searchengine.model.Lemma;
 
+import javax.transaction.Transactional;
 import java.util.List;
 
 @Repository
@@ -21,4 +23,10 @@ public interface LemmaRepository extends CrudRepository<Lemma, Integer> {
 
     @Query(value = "SELECT count(*) from Lemma where site_id = :id")
     long count(@Param("id") long id);
+    @Modifying
+    @Transactional
+    @Query(value = "insert into lemma(frequency, lemma, site_id) " +
+            "select f, l, id from (select :frequency f, :lemma l, :siteId id)t " +
+            "ON DUPLICATE KEY UPDATE frequency = frequency + f;", nativeQuery = true)
+    void saveLemma (@Param("lemma") String lemma, @Param("frequency") int frequency, @Param("siteId") int siteId);
 }

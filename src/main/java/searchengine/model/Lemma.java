@@ -8,9 +8,9 @@ import javax.persistence.*;
 
 @Entity
 @Table(name = "lemma",
-        indexes = {@javax.persistence.Index(columnList = "lemma",
-                name = "KEY_lemma_lemma")})
-@Data
+        indexes = {@javax.persistence.Index(columnList = "lemma, site_id",
+                name = "KEY_lemma_lemma",
+                unique = true)})@Data
 public class Lemma {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -66,4 +66,10 @@ public class LemmaRepoServiceImpl implements LemmaRepositoryService {
         }
         return lemmaRepository.findByIds(lemmaIdList);
     }
+
+    @Override
+    public void saveLemma(String lemma, int frequency, int siteId) {
+        lemmaRepository.saveLemma(lemma, frequency, siteId);
+    }
+
 }
