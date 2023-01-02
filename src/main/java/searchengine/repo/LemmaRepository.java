@@ -29,4 +29,6 @@ public interface LemmaRepository extends CrudRepository<Lemma, Integer> {
             "select f, l, id from (select :frequency f, :lemma l, :siteId id)t " +
             "ON DUPLICATE KEY UPDATE frequency = frequency + f;", nativeQuery = true)
     void saveLemma (@Param("lemma") String lemma, @Param("frequency") int frequency, @Param("siteId") int siteId);
+    @Query(value = "SELECT id from Lemma where lemma = :lemma and site_id = :site_id")
+    int findLemmaIdByNameAndSiteId(@Param("lemma") String lemma, @Param("site_id") int siteId);
 }

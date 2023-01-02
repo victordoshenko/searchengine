@@ -192,19 +192,13 @@ public class SiteIndexing extends Thread {
 
     private void indexingToDb(TreeMap<String, Float> map, String path) {
         Page page = pageRepositoryService.getPage(path);
-        int pathId = page.getId();
+        int pageId = page.getId();
         int siteId = page.getSiteId();
         for (Map.Entry<String, Float> lemma : map.entrySet()) {
-
             String lemmaName = lemma.getKey();
-            List<Lemma> lemma1 = lemmaRepositoryService.getLemma(lemmaName);
-            for (Lemma l : lemma1) {
-                if (l.getSiteId() == siteId) {
-                    int lemmaId = l.getId();
-                    Index index = new Index(pathId, lemmaId, lemma.getValue());
-                    indexRepositoryService.save(index);
-                }
-            }
+            int lemmaId = lemmaRepositoryService.findLemmaIdByNameAndSiteId(lemmaName, siteId);
+            Index index = new Index(pageId, lemmaId, lemma.getValue());
+            indexRepositoryService.save(index);
         }
     }
 

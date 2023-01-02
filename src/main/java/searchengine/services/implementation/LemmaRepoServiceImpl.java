@@ -72,4 +72,8 @@ public class LemmaRepoServiceImpl implements LemmaRepositoryService {
         lemmaRepository.saveLemma(lemma, frequency, siteId);
     }
 
+    @Override
+    public int findLemmaIdByNameAndSiteId(String lemma, int siteId) {
+        return lemmaRepository.findLemmaIdByNameAndSiteId(lemma, siteId);
+    }
 }
