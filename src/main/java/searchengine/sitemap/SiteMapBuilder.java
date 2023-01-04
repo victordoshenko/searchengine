@@ -2,6 +2,8 @@ package searchengine.sitemap;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import searchengine.model.Site;
+import searchengine.services.PageRepositoryService;
 
 import java.util.Arrays;
 import java.util.List;
@@ -16,18 +18,22 @@ public class SiteMapBuilder {
     private final String url;
     private final Boolean isInterrupted;
     private List<String> siteMap;
+    private final PageRepositoryService pageRepositoryService;
+    private final Site site;
 
     public ForkJoinPool pool = new ForkJoinPool();
 
-    public SiteMapBuilder(String url, Boolean isInterrupted) {
+    public SiteMapBuilder(String url, Boolean isInterrupted, PageRepositoryService pageRepositoryService, Site site) {
         this.url = url;
         this.isInterrupted = isInterrupted;
+        this.pageRepositoryService = pageRepositoryService;
+        this.site = site;
     }
 
     public void builtSiteMap() {
         pool = new ForkJoinPool();
         ParseUrl.clearUrlList();
-        String text = pool.invoke(new ParseUrl(url, isInterrupted));
+        String text = pool.invoke(new ParseUrl(url, isInterrupted, pageRepositoryService, url, site));
         siteMap = stringToList(text);
     }
 

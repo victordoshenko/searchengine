@@ -20,4 +20,8 @@ public interface PageRepository extends CrudRepository<Page, Integer> {
 
     @Query(value = "SELECT count(*) from Page where site_id = :id")
     long count(@Param("id") long id);
+    @Query(value = "SELECT * from Page WHERE path = :path and site_id = :id", nativeQuery = true)
+    Optional<Page> findByPathAndSiteId(@Param("path") String path, @Param("id") long id);
+    @Query(value = "SELECT * from Page WHERE site_id = :id", nativeQuery = true)
+    List<Page> getAllPagesBySiteId(@Param("id") long id);
 }

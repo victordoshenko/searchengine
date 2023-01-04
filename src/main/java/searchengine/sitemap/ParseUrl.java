@@ -2,9 +2,13 @@ package searchengine.sitemap;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
+import searchengine.model.Page;
+import searchengine.model.Site;
+import searchengine.services.PageRepositoryService;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -15,12 +19,18 @@ import java.util.concurrent.RecursiveTask;
 public class ParseUrl extends RecursiveTask<String> {
     public final static List<String> urlList = new Vector<>();
     private static final Logger log = LogManager.getLogger();
+    private final PageRepositoryService pageRepositoryService;
     private final String url;
     private final Boolean isInterrupted;
+    private final String baseUrl;
+    private final Site site;
 
-    public ParseUrl(String url, boolean isInterrupted) {
+    public ParseUrl(String url, boolean isInterrupted, PageRepositoryService pageRepositoryService, String baseUrl, Site site) {
         this.url = url;
         this.isInterrupted = isInterrupted;
+        this.pageRepositoryService = pageRepositoryService;
+        this.baseUrl = baseUrl;
+        this.site = site;
     }
 
     public static void clearUrlList() {
@@ -36,7 +46,14 @@ public class ParseUrl extends RecursiveTask<String> {
         result.append(url);
         try {
             Thread.sleep(200);
-            Document doc = getDocumentByUrl(url);
+            Connection.Response response = getResponseByUrl(url);
+            Page page = new Page();
+            page.setCode(response.statusCode());
+            page.setPath(url.replaceAll(baseUrl, ""));
+            page.setContent(response.body());
+            page.setSiteId(site.getId());
+            pageRepositoryService.save(page);
+            Document doc = response.parse();
             Elements rootElements = doc.select("a");
 
             List<ParseUrl> linkGrabers = new ArrayList<>();
@@ -49,7 +66,7 @@ public class ParseUrl extends RecursiveTask<String> {
                         && !urlList.contains(link)
                 ) {
                     urlList.add(link);
-                    ParseUrl linkGraber = new ParseUrl(link, false);
+                    ParseUrl linkGraber = new ParseUrl(link, false, pageRepositoryService, baseUrl, site);
                     linkGraber.fork();
                     linkGrabers.add(linkGraber);
                 }
@@ -68,13 +85,14 @@ public class ParseUrl extends RecursiveTask<String> {
         return result.toString();
     }
 
-    protected Document getDocumentByUrl(String url) throws InterruptedException, IOException {
-        log.info(" getDocumentByUrl[" + urlList.size() + "]: " + url);
+    protected Connection.Response getResponseByUrl(String url) throws InterruptedException, IOException {
+        log.info(" getResponseByUrl[" + urlList.size() + "]: " + url);
         Thread.sleep(200);
         return Jsoup.connect(url)
                 .maxBodySize(0)
                 .userAgent("Mozilla/5.0 (Windows; U; WindowsNT 5.1; en-US; rv1.8.1.6) Gecko/20070725 Firefox/2.0.0.6")
                 .referrer("http://www.google.com")
-                .get();
+                .execute();
     }
+
 }

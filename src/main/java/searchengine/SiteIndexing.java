@@ -18,7 +18,6 @@ import java.util.*;
 public class SiteIndexing extends Thread {
     private static final Logger log = LogManager.getLogger();
     private final Site site;
-    private final SearchSettings searchSettings;
     private final SiteRepositoryService siteRepositoryService;
     private final IndexRepositoryService indexRepositoryService;
     private final PageRepositoryService pageRepositoryService;
@@ -37,13 +36,12 @@ public class SiteIndexing extends Thread {
                         boolean allSite,
                         String url) {
         this.site = site;
-        this.searchSettings = searchSettings;
         this.siteRepositoryService = siteRepositoryService;
         this.indexRepositoryService = indexRepositoryService;
         this.pageRepositoryService = pageRepositoryService;
         this.lemmaRepositoryService = lemmaRepositoryService;
         this.allSite = allSite;
-        this.builder = new SiteMapBuilder(site.getUrl(), this.isInterrupted());
+        this.builder = new SiteMapBuilder(site.getUrl(), this.isInterrupted(), pageRepositoryService, site);
         this.url = url;
     }
 
@@ -53,7 +51,7 @@ public class SiteIndexing extends Thread {
             if (allSite) {
                 runAllIndexing();
             } else {
-                runOneSiteIndexing(this.url.equals("") ? site.getUrl() : this.url);
+                runOneSiteIndexing(this.url.equals("") ? site.getUrl() : this.url, null);
                 if (!this.url.equals("")) {
                     log.info("Индексация одной страницы завершена.");
                 }
@@ -70,9 +68,8 @@ public class SiteIndexing extends Thread {
         site.setStatusTime(new Date());
         siteRepositoryService.save(site);
         builder.builtSiteMap();
-        List<String> allSiteUrls = builder.getSiteMap();
-        for (String url : allSiteUrls) {
-            runOneSiteIndexing(url);
+        for (Page page : pageRepositoryService.getAllPagesBySiteId(site.getId())) {//allPages) {
+            runOneSiteIndexing(site.getUrl() + page.getPath(), page);
         }
         log.info("Индексация завершена.");
     }
@@ -82,7 +79,7 @@ public class SiteIndexing extends Thread {
         builder.stopBuildSiteMap();
     }
 
-    public void runOneSiteIndexing(String searchUrl) {
+    public void runOneSiteIndexing(String searchUrl, Page page) {
         if (isStoppingByHuman) {
             return;
         }
@@ -93,17 +90,30 @@ public class SiteIndexing extends Thread {
 
         List<String> fieldList = getFieldList();
         try {
-            Page page = getSearchPage(searchUrl, site.getUrl(), site.getId());
-            Page checkPage = pageRepositoryService.getPage(searchUrl.replaceAll(site.getUrl(), ""));
+            String pagePath = searchUrl.replaceAll(site.getUrl(), "");
+            if (pagePath.isBlank()) {
+                pagePath = "/";
+            }
+            Optional<Page> getPage;
+            if (page == null) {
+                getPage = pageRepositoryService.findPageByPagePathAndSiteId(pagePath, site.getId());
+            } else {
+                getPage = Optional.of(page);
+            }
+            Page checkPage = new Page();
+            if (getPage.isPresent()) {
+                checkPage = getPage.get();
+            }
 
-            if (checkPage != null) {
+            if (pagePath.equals("/")) {
                 prepareDbToIndexing(checkPage);
             }
+
             TreeMap<String, Integer> map = new TreeMap<>();
             TreeMap<String, Float> indexing = new TreeMap<>();
             for (String name : fieldList) {
                 float weight = 1.0f;
-                String stringByTag = getStringByTag(name, page.getContent());
+                String stringByTag = getStringByTag(name, Objects.requireNonNull(page).getContent());
                 MorphologyAnalyzer analyzer = new MorphologyAnalyzer();
                 TreeMap<String, Integer> tempMap = analyzer.textAnalyzer(stringByTag);
                 map.putAll(tempMap);
@@ -113,44 +123,25 @@ public class SiteIndexing extends Thread {
             lemmaToDB(map, site.getId());
             map.clear();
 
-            pageToDb(page);
-
-            indexingToDb(indexing, page.getPath());
+            indexingToDb(indexing, pagePath, checkPage);
             indexing.clear();
 
-        } catch (UnsupportedMimeTypeException e) {
-            site.setLastError("Формат страницы не поддерживается: " + searchUrl);
+        } catch (Exception e) {
+            site.setLastError(e.getMessage());
+            log.info(e.getMessage());
             site.setStatus(Status.FAILED);
-        } catch (IOException e) {
-            site.setLastError("Ошибка чтения страницы: " + searchUrl + "\n" + e.getMessage());
-            site.setStatus(Status.FAILED);
-        } finally {
+            e.printStackTrace();
+        }
+        finally {
             siteRepositoryService.save(site);
         }
+
         site.setStatus(Status.INDEXED);
         siteRepositoryService.save(site);
     }
 
-
     private void pageToDb(Page page) {
         pageRepositoryService.save(page);
-    }
-
-    private Page getSearchPage(String url, String baseUrl, int siteId) throws IOException {
-        Page page = new Page();
-        Connection.Response response = Jsoup.connect(url)
-                .userAgent(searchSettings.getAgent())
-                .referrer("http://www.google.com")
-                .execute();
-
-        String content = response.body();
-        String path = url.replaceAll(baseUrl, "");
-        int code = response.statusCode();
-        page.setCode(code);
-        page.setPath(path);
-        page.setContent(content);
-        page.setSiteId(siteId);
-        return page;
     }
 
     private List<String> getFieldList() {
@@ -169,7 +160,7 @@ public class SiteIndexing extends Thread {
         return string;
     }
 
-    private void lemmaToDB(TreeMap<String, Integer> lemmaMap, int siteId) {
+    private synchronized void lemmaToDB(TreeMap<String, Integer> lemmaMap, int siteId) {
         for (Map.Entry<String, Integer> lemma : lemmaMap.entrySet()) {
             lemmaRepositoryService.saveLemma(lemma.getKey(), lemma.getValue(), siteId);
         }
@@ -190,8 +181,7 @@ public class SiteIndexing extends Thread {
         return map;
     }
 
-    private void indexingToDb(TreeMap<String, Float> map, String path) {
-        Page page = pageRepositoryService.getPage(path);
+    private synchronized void indexingToDb(TreeMap<String, Float> map, String path, Page page) {
         int pageId = page.getId();
         int siteId = page.getSiteId();
         for (Map.Entry<String, Float> lemma : map.entrySet()) {
@@ -205,8 +195,6 @@ public class SiteIndexing extends Thread {
     private void prepareDbToIndexing(Page page) {
         List<Index> indexingList = indexRepositoryService.getAllIndexingByPage(page);
         List<Lemma> allLemmasIdByIndexing = lemmaRepositoryService.findLemmasByIndexing(indexingList);
-        List<Page> allPagesIdByIndexing = pageRepositoryService.findPagesByIndexing(indexingList);
         lemmaRepositoryService.deleteAllLemmas(allLemmasIdByIndexing);
-        pageRepositoryService.deleteAllPages(allPagesIdByIndexing);
     }
 }

@@ -21,5 +21,5 @@ config:
   site:
     - url: https://nikoartgallery.com
       name: nikoartgallery
-#    - url: https://www.svetlovka.ru
-#      name: svetlovka
+    - url: https://www.svetlovka.ru
+      name: svetlovka
