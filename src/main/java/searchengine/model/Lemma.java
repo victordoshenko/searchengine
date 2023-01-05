@@ -10,7 +10,8 @@ import javax.persistence.*;
 @Table(name = "lemma",
         indexes = {@javax.persistence.Index(columnList = "lemma, site_id",
                 name = "KEY_lemma_lemma",
-                unique = true)})@Data
+                unique = false)})
+@Data
 public class Lemma {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

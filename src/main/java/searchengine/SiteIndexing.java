@@ -6,13 +6,10 @@ import searchengine.model.*;
 import searchengine.morphology.MorphologyAnalyzer;
 import searchengine.services.*;
 import searchengine.sitemap.SiteMapBuilder;
-import org.jsoup.Connection;
 import org.jsoup.Jsoup;
-import org.jsoup.UnsupportedMimeTypeException;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 
-import java.io.IOException;
 import java.util.*;
 
 public class SiteIndexing extends Thread {
@@ -22,6 +19,7 @@ public class SiteIndexing extends Thread {
     private final IndexRepositoryService indexRepositoryService;
     private final PageRepositoryService pageRepositoryService;
     private final LemmaRepositoryService lemmaRepositoryService;
+    private final LemmaAllRepositoryService lemmaAllRepositoryService;
     private final boolean allSite;
     private Boolean isStoppingByHuman = false;
     SiteMapBuilder builder;
@@ -33,6 +31,7 @@ public class SiteIndexing extends Thread {
                         IndexRepositoryService indexRepositoryService,
                         PageRepositoryService pageRepositoryService,
                         LemmaRepositoryService lemmaRepositoryService,
+                        LemmaAllRepositoryService lemmaAllRepositoryService,
                         boolean allSite,
                         String url) {
         this.site = site;
@@ -40,6 +39,7 @@ public class SiteIndexing extends Thread {
         this.indexRepositoryService = indexRepositoryService;
         this.pageRepositoryService = pageRepositoryService;
         this.lemmaRepositoryService = lemmaRepositoryService;
+        this.lemmaAllRepositoryService = lemmaAllRepositoryService;
         this.allSite = allSite;
         this.builder = new SiteMapBuilder(site.getUrl(), this.isInterrupted(), pageRepositoryService, site);
         this.url = url;
@@ -71,6 +71,8 @@ public class SiteIndexing extends Thread {
         for (Page page : pageRepositoryService.getAllPagesBySiteId(site.getId())) {//allPages) {
             runOneSiteIndexing(site.getUrl() + page.getPath(), page);
         }
+        lemmaAllRepositoryService.saveLemma();
+        lemmaAllRepositoryService.saveIndex();
         log.info("Индексация завершена.");
     }
 
@@ -110,22 +112,20 @@ public class SiteIndexing extends Thread {
             }
 
             TreeMap<String, Integer> map = new TreeMap<>();
-            TreeMap<String, Float> indexing = new TreeMap<>();
             for (String name : fieldList) {
                 float weight = 1.0f;
                 String stringByTag = getStringByTag(name, Objects.requireNonNull(page).getContent());
                 MorphologyAnalyzer analyzer = new MorphologyAnalyzer();
                 TreeMap<String, Integer> tempMap = analyzer.textAnalyzer(stringByTag);
                 map.putAll(tempMap);
-                indexing.putAll(indexingLemmas(tempMap, weight));
             }
 
-            lemmaToDB(map, site.getId());
+            List<LemmaAll> lemmaAllList = Collections.synchronizedList(new ArrayList<>());
+            for (Map.Entry<String, Integer> lemma : map.entrySet()) {
+                lemmaAllList.add(new LemmaAll(lemma.getKey(), lemma.getValue(), site.getId(), checkPage.getId()));
+            }
+            lemmaAllRepositoryService.saveAll(lemmaAllList);
             map.clear();
-
-            indexingToDb(indexing, pagePath, checkPage);
-            indexing.clear();
-
         } catch (Exception e) {
             site.setLastError(e.getMessage());
             log.info(e.getMessage());
@@ -138,10 +138,6 @@ public class SiteIndexing extends Thread {
 
         site.setStatus(Status.INDEXED);
         siteRepositoryService.save(site);
-    }
-
-    private void pageToDb(Page page) {
-        pageRepositoryService.save(page);
     }
 
     private List<String> getFieldList() {
@@ -158,38 +154,6 @@ public class SiteIndexing extends Thread {
             string = builder.toString();
         }
         return string;
-    }
-
-    private synchronized void lemmaToDB(TreeMap<String, Integer> lemmaMap, int siteId) {
-        for (Map.Entry<String, Integer> lemma : lemmaMap.entrySet()) {
-            lemmaRepositoryService.saveLemma(lemma.getKey(), lemma.getValue(), siteId);
-        }
-    }
-
-    private TreeMap<String, Float> indexingLemmas(TreeMap<String, Integer> lemmas, float weight) {
-        TreeMap<String, Float> map = new TreeMap<>();
-        for (Map.Entry<String, Integer> lemma : lemmas.entrySet()) {
-            String name = lemma.getKey();
-            float w;
-            if (!map.containsKey(name)) {
-                w = (float) lemma.getValue() * weight;
-            } else {
-                w = map.get(name) + ((float) lemma.getValue() * weight);
-            }
-            map.put(name, w);
-        }
-        return map;
-    }
-
-    private synchronized void indexingToDb(TreeMap<String, Float> map, String path, Page page) {
-        int pageId = page.getId();
-        int siteId = page.getSiteId();
-        for (Map.Entry<String, Float> lemma : map.entrySet()) {
-            String lemmaName = lemma.getKey();
-            int lemmaId = lemmaRepositoryService.findLemmaIdByNameAndSiteId(lemmaName, siteId);
-            Index index = new Index(pageId, lemmaId, lemma.getValue());
-            indexRepositoryService.save(index);
-        }
     }
 
     private void prepareDbToIndexing(Page page) {
