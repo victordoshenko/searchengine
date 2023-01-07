@@ -31,4 +31,8 @@ public class LemmaAllRepoServiceImpl implements LemmaAllRepositoryService {
     public void saveIndex() {
         lemmaAllRepository.saveIndex();
     }
+    @Override
+    public void deleteLemmaAll() {
+        lemmaAllRepository.deleteAll();
+    }
 }

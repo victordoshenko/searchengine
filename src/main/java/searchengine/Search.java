@@ -45,7 +45,7 @@ public class Search {
                 listOfSearchData.addAll(getSortedSearchData(list, request));
             }
         } else {
-            Site site = siteRepositoryService.getSite(url);
+            Site site = siteRepositoryService.getSite(url).get();
             Map<Page, Double> list = searching(request, site.getId());
             listOfSearchData.addAll(getSortedSearchData(list, request));
         }

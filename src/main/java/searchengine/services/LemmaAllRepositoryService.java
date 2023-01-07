@@ -8,4 +8,6 @@ public interface LemmaAllRepositoryService {
     void saveLemma();
 
     void saveIndex();
+
+    void deleteLemmaAll();
 }

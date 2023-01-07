@@ -46,4 +46,8 @@ public class PageRepoServiceImpl implements PageRepositoryService {
     public List<Page> getAllPagesBySiteId(int siteId) {
         return pageRepository.getAllPagesBySiteId(siteId);
     }
+    @Override
+    public synchronized void deletePagesBySiteId(int siteId) {
+        pageRepository.deleteAll(getAllPagesBySiteId(siteId));
+    }
 }

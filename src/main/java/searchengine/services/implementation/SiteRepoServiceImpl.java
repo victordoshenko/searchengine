@@ -19,7 +19,7 @@ public class SiteRepoServiceImpl implements SiteRepositoryService {
     }
 
     @Override
-    public Site getSite(String url) {
+    public Optional<Site> getSite(String url) {
         return siteRepository.findByUrl(url);
     }
     public Site getSite(int siteId) {

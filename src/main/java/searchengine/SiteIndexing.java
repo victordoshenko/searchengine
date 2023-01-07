@@ -68,12 +68,13 @@ public class SiteIndexing extends Thread {
         site.setStatusTime(new Date());
         siteRepositoryService.save(site);
         builder.builtSiteMap();
-        for (Page page : pageRepositoryService.getAllPagesBySiteId(site.getId())) {//allPages) {
+        for (Page page : pageRepositoryService.getAllPagesBySiteId(site.getId())) {
             runOneSiteIndexing(site.getUrl() + page.getPath(), page);
         }
+        lemmaAllRepositoryService.deleteLemmaAll();
         lemmaAllRepositoryService.saveLemma();
         lemmaAllRepositoryService.saveIndex();
-        log.info("Индексация завершена.");
+        log.info(site.getName() + " Индексация завершена.");
     }
 
     public void stopBuildSiteMap() {

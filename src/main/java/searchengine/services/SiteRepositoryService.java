@@ -3,9 +3,10 @@ package searchengine.services;
 import searchengine.model.Site;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface SiteRepositoryService {
-    Site getSite (String url);
+    Optional<Site> getSite (String url);
     Site getSite (int siteId);
     void save(Site site);
     long siteCount();

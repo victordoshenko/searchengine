@@ -63,7 +63,7 @@ public class IndexBuilding {
         if (baseUrl.isEmpty()) {
             return "not found";
         } else {
-            Site site = siteRepositoryService.getSite(baseUrl);
+            Site site = siteRepositoryService.getSite(baseUrl).get();
             site.setUrl(url);
             SiteIndexing indexing = new SiteIndexing(
                     site,
@@ -84,41 +84,27 @@ public class IndexBuilding {
     }
 
     private boolean startSiteIndexing(Site site) {
-        Site site1 = siteRepositoryService.getSite(site.getUrl());
+        Site site1 = siteRepositoryService.getSite(site.getUrl()).orElse(null);
         if (site1 == null) {
             siteRepositoryService.save(site);
-            SiteIndexing indexing = new SiteIndexing(
-                    siteRepositoryService.getSite(site.getUrl()),
-                    searchSettings,
-                    siteRepositoryService,
-                    indexRepositoryService,
-                    pageRepositoryService,
-                    lemmaRepositoryService,
-                    lemmaAllRepositoryService,
-                    true,
-                    "");
-            siteIndexingList.add(indexing);
-            executor.execute(indexing);
-            return true;
-        } else {
-            if (!site1.getStatus().equals(Status.INDEXING)) {
-                SiteIndexing indexing = new SiteIndexing(
-                        siteRepositoryService.getSite(site.getUrl()),
-                        searchSettings,
-                        siteRepositoryService,
-                        indexRepositoryService,
-                        pageRepositoryService,
-                        lemmaRepositoryService,
-                        lemmaAllRepositoryService,
-                        true,
-                        "");
-                siteIndexingList.add(indexing);
-                executor.execute(indexing);
-                return true;
-            } else {
-                return false;
-            }
+            site1 = siteRepositoryService.getSite(site.getUrl()).orElse(null);
+        } else if (site1.getStatus().equals(Status.INDEXING)) {
+            return false;
         }
+        pageRepositoryService.deletePagesBySiteId(site1.getId());
+        SiteIndexing indexing = new SiteIndexing(
+                siteRepositoryService.getSite(site.getUrl()).orElse(null),
+                searchSettings,
+                siteRepositoryService,
+                indexRepositoryService,
+                pageRepositoryService,
+                lemmaRepositoryService,
+                lemmaAllRepositoryService,
+                true,
+                "");
+        siteIndexingList.add(indexing);
+        executor.execute(indexing);
+        return true;
     }
 
     public boolean stopSiteIndexing() {

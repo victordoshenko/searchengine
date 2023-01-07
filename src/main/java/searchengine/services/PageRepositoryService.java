@@ -18,4 +18,6 @@ public interface PageRepositoryService {
     Optional<Page> findPageByPagePathAndSiteId(String pagePath, int siteId);
 
     List<Page> getAllPagesBySiteId(int siteId);
+
+    void deletePagesBySiteId(int siteId);
 }
